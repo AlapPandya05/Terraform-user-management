@@ -1,7 +1,5 @@
 provider "aws" {
-  region     = var.aws_region[0]
-  access_key = "AKIA3BWTZKZCMSIT25O5"
-  secret_key = "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"
+  region = var.aws_region[0]
 }
 
 # 1. Create VPC

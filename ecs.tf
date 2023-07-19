@@ -31,6 +31,10 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_attach
 }
 
 
+data "aws_ecr_repository" "test" {
+  name = aws_ecr_repository.ecr.name
+}
+
 resource "aws_ecs_task_definition" "task-definition-fargate" {
   family                   = "user-management-tf-fargate"
   network_mode             = "awsvpc"
@@ -42,7 +46,7 @@ resource "aws_ecs_task_definition" "task-definition-fargate" {
 [
   {
     "name": "user-management-fargate-container",
-    "image": "${var.backend_image_url}",
+    "image": "${data.aws_ecr_repository.test.repository_url}",
     "cpu": 2048,
     "memory": 4096,
     "portMappings": [
