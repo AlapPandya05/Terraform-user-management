@@ -40,6 +40,8 @@ data "aws_ecr_repository" "repo" {
   name = aws_ecr_repository.ecr.name
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_ecs_task_definition" "task-definition-fargate" {
   family                   = "user-management-tf-fargate"
   network_mode             = "awsvpc"
@@ -55,13 +57,25 @@ resource "aws_ecs_task_definition" "task-definition-fargate" {
     "image": "${data.aws_ecr_repository.repo.repository_url}",
     "cpu": 2048,
     "memory": 4096,
+    "command": ["npm", "start"], 
+    "workingDirectory": "/app",
     "portMappings": [
       {
         "containerPort": 3001,
         "hostPort": 3001,
         "protocol": "tcp"
       }
-    ]
+    ],
+     "secrets": [
+        {
+          "name": "DB_USERNAME",
+          "valuefrom": "arn:aws:secretsmanager:${var.aws_region[0]}:${data.aws_caller_identity.current.account_id}:secret:db_username::"
+        },
+        {
+          "name": "DB_PASSWORD",
+          "valuefrom": "arn:aws:secretsmanager:${var.aws_region[0]}:${data.aws_caller_identity.current.account_id}:secret:db_password::"
+        }
+      ]
   }
 ]
 DEFINITION
