@@ -18,8 +18,4 @@ variable "aws_region" {
   description = "aws region"
 }
 
-variable "backend_image_url" {
-  description = "The URL of the backend container image"
-  type        = string
-}
 

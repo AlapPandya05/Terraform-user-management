@@ -1,9 +1,15 @@
 resource "aws_ecs_cluster" "ecs" {
   name = "user-management-cluster"
-  #   setting {
-  #     name  = "containerInsights"
-  #     value = "enabled"
-  #   }
+  # setting {
+  #   name  = "containerInsights"
+  #   value = "enabled"
+  # }
+  # setting {
+  #   name = "vpc_configuration"
+  #   value = jsonencode({
+  #     subnets = aws_subnet.private_subnets[*].id
+  #   })
+  # }
 }
 
 resource "aws_iam_role" "ecs_task_execution_role" {
@@ -30,8 +36,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_attach
   role       = aws_iam_role.ecs_task_execution_role.name
 }
 
-
-data "aws_ecr_repository" "test" {
+data "aws_ecr_repository" "repo" {
   name = aws_ecr_repository.ecr.name
 }
 
@@ -41,12 +46,13 @@ resource "aws_ecs_task_definition" "task-definition-fargate" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = 2048
   memory                   = 4096
+  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   container_definitions    = <<DEFINITION
 [
   {
     "name": "user-management-fargate-container",
-    "image": "${data.aws_ecr_repository.test.repository_url}",
+    "image": "${data.aws_ecr_repository.repo.repository_url}",
     "cpu": 2048,
     "memory": 4096,
     "portMappings": [
@@ -61,7 +67,8 @@ resource "aws_ecs_task_definition" "task-definition-fargate" {
 DEFINITION
 
   depends_on = [
-    aws_iam_role_policy_attachment.ecs_task_execution_role_policy_attachment
+    aws_iam_role_policy_attachment.ecs_task_execution_role_policy_attachment,
+    aws_ecr_repository.ecr
   ]
 
 }
